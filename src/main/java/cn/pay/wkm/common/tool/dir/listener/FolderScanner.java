@@ -37,9 +37,6 @@ public class FolderScanner extends QBeanSupport {
 	//jpos日志管理
 	private Log log = new Log((Logger)NameRegistrar.getIfExists("logger.Q2"), FolderScanner.class.getName());
 	
-	//获取配置文件
-	private Configuration config = getConfiguration();
-	
 	//路径分隔符
 	private	String pathSeparator = System.getProperty("path.separator");
 	
@@ -56,7 +53,11 @@ public class FolderScanner extends QBeanSupport {
 	 */
 	protected void initService() throws Exception {
 		// TODO Auto-generated method stub
-		String paths = config.get("path", userHome);
+		
+		//获取配置文件
+		Configuration cfg = getConfiguration();
+		
+		String paths = cfg.get("path", userHome);
 		log.info("获取监听目录:" + paths);
 		if(StringUtils.isBlank(paths.trim())){
 			log.error("监听目录为空,启动目录扫描器失败!");
@@ -77,13 +78,15 @@ public class FolderScanner extends QBeanSupport {
 				config.setAddress(cfg.get("address", "127.0.0.1"));
 				config.setTargetPath(cfg.get("remotePath", System.getProperty("user.dir")));
 				config.setUserName(cfg.get("userName", "appuser"));
-				config.setRemote(cfg.getBoolean("isRemote", true));
+				if(!StringUtils.isBlank(cfg.get("isRemote"))){
+					config.setRemote(cfg.getBoolean("isRemote", true));
+				}
 				
 				//加载处理器
 				FolderListener listener = null;
 				String listenerClass = cfg.get("listener");
 				if(StringUtils.isBlank(listenerClass)){
-					if(cfg.getBoolean("isRemote", true)){
+					if(config.isRemote()){
 						listener = new ScpFileListener();
 					} else {
 						listener = new LocalCopyListener();
