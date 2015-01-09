@@ -91,7 +91,7 @@ public class FolderScanner extends QBeanSupport {
 				} else {
 					listener = (FolderListener)Class.forName(listenerClass).newInstance();
 				}
-				
+				listener.setFolderConfig(config);
 				watchIds.add(JNotify.addWatch(config.getSourcePath(), JNotify.FILE_ANY, true, listener));
 			}
 			log.info("初始化目录扫描器成功!");
