@@ -113,6 +113,11 @@ public class BaseKeyTool extends BaseConfigInit{
 		encryptByKek(clearZmk, tmk, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_ZMK, SMAdapter.TYPE_TMK);
 	}
 	
+	public void create3DESTAKByTMK(String clearTmk,KeyInfo tak){
+		create3DESTAK(tak);
+		encryptByKek(clearTmk, tak, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_TMK, SMAdapter.TYPE_TAK);
+	}
+	
 	/**
 	 * 通过KEK对3DESTMK进行加密
 	 * encrypt3DESTMKByZMK:(这里用一句话描述这个方法的作用). <br/>
@@ -131,7 +136,7 @@ public class BaseKeyTool extends BaseConfigInit{
 	}
 	
 	/**
-	 * 
+	 * 通过LMK加密TMK
 	 * encrypt3DESTMKByLMK:(这里用一句话描述这个方法的作用). <br/>
 	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
 	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
@@ -144,6 +149,23 @@ public class BaseKeyTool extends BaseConfigInit{
 	 */
 	public String encrypt3DESTMKByLMK(String clearKey){
 		return encryptToLMK(clearKey, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_TMK);
+	}
+	
+	/**
+	 * 通过LMK加密TAK
+	 * encrypt3DESTAKByLMK:(这里用一句话描述这个方法的作用). <br/>
+	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
+	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
+	 * TODO(这里描述这个方法的使用方法 – 可选).<br/>
+	 * TODO(这里描述这个方法的注意事项 – 可选).<br/>
+	 *
+	 * @author wkmnet@foxmail.com
+	 * @param clearKey
+	 * @return
+	 * @since JDK 1.6
+	 */
+	public String encrypt3DESTAKByLMK(String clearKey){
+		return encryptToLMK(clearKey, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_TAK);
 	}
 	
 	/**
