@@ -81,7 +81,6 @@ public abstract class BaseConfigInit {
 			packager = new GenericPackager(f.getAbsolutePath());
 		} catch (ISOException e){
 			logger.error("初始化[iso8583.xml]错误:" + e.getMessage(),e);
-			return;
 		}
 		
 		try {
