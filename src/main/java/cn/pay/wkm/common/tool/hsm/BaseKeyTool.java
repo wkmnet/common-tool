@@ -15,6 +15,7 @@ import org.jpos.iso.ISOUtil;
 import org.jpos.security.SMAdapter;
 import org.jpos.security.SMException;
 import org.jpos.security.SecureDESKey;
+import org.jpos.security.jceadapter.JCEHandlerException;
 
 /**
  * ClassName:BaseKeyTool <br/>
@@ -94,6 +95,56 @@ public class BaseKeyTool extends BaseConfigInit{
 		createKey(zmk, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_ZMK);
 	}
 	
+	/**
+	 * 生成3DESTMK并通过KEK对3DESTMK进行加密
+	 * create3DESTMKByZMK:(这里用一句话描述这个方法的作用). <br/>
+	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
+	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
+	 * TODO(这里描述这个方法的使用方法 – 可选).<br/>
+	 * TODO(这里描述这个方法的注意事项 – 可选).<br/>
+	 *
+	 * @author wkmnet@foxmail.com
+	 * @param clearZmk
+	 * @param tmk
+	 * @since JDK 1.6
+	 */
+	public void create3DESTMKByZMK(String clearZmk,KeyInfo tmk){
+		create3DESTMK(tmk);
+		encryptByKek(clearZmk, tmk, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_ZMK, SMAdapter.TYPE_TMK);
+	}
+	
+	/**
+	 * 通过KEK对3DESTMK进行加密
+	 * encrypt3DESTMKByZMK:(这里用一句话描述这个方法的作用). <br/>
+	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
+	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
+	 * TODO(这里描述这个方法的使用方法 – 可选).<br/>
+	 * TODO(这里描述这个方法的注意事项 – 可选).<br/>
+	 *
+	 * @author wkmnet@foxmail.com
+	 * @param clearZmk
+	 * @param tmk
+	 * @since JDK 1.6
+	 */
+	public void encrypt3DESTMKByZMK(String clearZmk,KeyInfo tmk){
+		encryptByKek(clearZmk, tmk, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_ZMK, SMAdapter.TYPE_TMK);
+	}
+	
+	/**
+	 * 
+	 * encrypt3DESTMKByLMK:(这里用一句话描述这个方法的作用). <br/>
+	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
+	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
+	 * TODO(这里描述这个方法的使用方法 – 可选).<br/>
+	 * TODO(这里描述这个方法的注意事项 – 可选).<br/>
+	 *
+	 * @author wkmnet@foxmail.com
+	 * @param clearKey
+	 * @since JDK 1.6
+	 */
+	public String encrypt3DESTMKByLMK(String clearKey){
+		return encryptToLMK(clearKey, SMAdapter.LENGTH_DES3_2KEY, SMAdapter.TYPE_TMK);
+	}
 	
 	/**
 	 * 获取密文密钥并解密成明文
@@ -190,6 +241,60 @@ public class BaseKeyTool extends BaseConfigInit{
 		}
 	}
 	
+	/**
+	 * 通过KEK对密钥进行加密
+	 * decryptByKek:(这里用一句话描述这个方法的作用). <br/>
+	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
+	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
+	 * TODO(这里描述这个方法的使用方法 – 可选).<br/>
+	 * TODO(这里描述这个方法的注意事项 – 可选).<br/>
+	 *
+	 * @author wkmnet@foxmail.com
+	 * @param hexKek
+	 * @param keyInfo
+	 * @param keyLength
+	 * @param keyType
+	 * @since JDK 1.6
+	 */
+	protected void encryptByKek(String hexKek,KeyInfo keyInfo,short keyLength, String kekType, String keyType){
+		try {
+			Key clearKek = handler.formDESKey(keyLength, ISOUtil.hex2byte(hexKek));
+			SecureDESKey encryptKek = ssm.encryptToLMK(keyLength, kekType, clearKek);
+			Key clearKey = handler.formDESKey(keyLength, ISOUtil.hex2byte(keyInfo.getKeyValue()));
+			SecureDESKey encryptKey = ssm.encryptToLMK(keyLength, keyType, clearKey);
+			keyInfo.setKeyCiphertext(ISOUtil.byte2hex(ssm.exportKey(encryptKey, encryptKek)).toUpperCase().substring(0, keyLength/4));
+		} catch (SMException e) {
+			logger.error("create key SMException:" + e.getMessage(), e);
+		}
+	}
+	
+	/**
+	 * 通过LMK加密后导出
+	 * encryptToLMK:(这里用一句话描述这个方法的作用). <br/>
+	 * TODO(这里描述这个方法适用条件 – 可选).<br/>
+	 * TODO(这里描述这个方法的执行流程 – 可选).<br/>
+	 * TODO(这里描述这个方法的使用方法 – 可选).<br/>
+	 * TODO(这里描述这个方法的注意事项 – 可选).<br/>
+	 *
+	 * @author wkmnet@foxmail.com
+	 * @param clearKey
+	 * @param keyLength
+	 * @param kekType
+	 * @return
+	 * @since JDK 1.6
+	 */
+	protected String encryptToLMK(String clearKey, short keyLength, String kekType){
+		try {
+			Key key = handler.formDESKey(SMAdapter.LENGTH_DES3_2KEY, ISOUtil.hex2byte(clearKey));
+			SecureDESKey tmkLmk = ssm.encryptToLMK(keyLength, kekType,key);
+			return ISOUtil.hexString(tmkLmk.getKeyBytes());
+		} catch (JCEHandlerException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SMException e) {
+			logger.error(e.getMessage(), e);
+		} 
+		return null;
+	}
 	
 	public static void main(String[] args) {
 		BaseKeyTool tool = new BaseKeyTool();
