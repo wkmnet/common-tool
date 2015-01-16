@@ -9,6 +9,7 @@
 package cn.pay.wkm.common.tool.http;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import net.sf.json.JSONObject;
 
@@ -99,8 +100,10 @@ private String url = null;
 	}
 	
 	public static void main(String[] args) {
-		if(args.length != 0){
+		System.out.println(Arrays.toString(args));
+		if(args.length != 2){
 			System.out.println("参数非法!");
+			return;
 		}
 		Http3Client b = new Http3Client();
 //		b.setName("武坤萌");
